@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foodies | Premium Dark Experience</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root { 
+            --primary: #800000; /* খয়েরি লাল */
+            --accent: #ff4757; 
+            --dark-bg: #1a1a1a; 
+            --card-bg: #2d2d2d;
+            --text: #ffffff;
+            --gradient: linear-gradient(135deg, #800000, #b30000);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--dark-bg); color: var(--text); }
+
+        /* Header & Sidebar */
+        header { background: #000; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 1000; }
+        .menu-btn { font-size: 28px; cursor: pointer; color: var(--accent); border: none; background: none; }
+        
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #111; color: white; transition: 0.4s; padding: 40px 20px; z-index: 2000; border-right: 2px solid var(--primary); }
+        .sidebar.active { left: 0; }
+        .profile-pic { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; margin-bottom: 15px; }
+
+        /* Welcome Section (Hero) */
+        .hero { height: 40vh; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; text-align: center; border-bottom: 5px solid #000; padding: 20px; }
+        #welcome-text { font-size: 2.2rem; font-weight: 800; min-height: 1.2em; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+
+        /* Menu Grid */
+        .container { padding: 40px 5%; margin-bottom: 100px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; }
+        .card { background: var(--card-bg); padding: 15px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; border: 1px solid #444; }
+        .card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .card img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+        .card h3 { margin: 10px 0; }
+        .card p { color: var(--accent); font-weight: bold; font-size: 1.2rem; }
+
+        /* Buttons & Modals */
+        .btn { background: var(--gradient); color: white; border: none; padding: 12px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; margin-top: 10px; width: 100%; transition: 0.3s; }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
+        .form-box { background: #fff; color: #333; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .form-box h2, .form-box h3 { color: var(--primary); margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+
+        /* Bottom Bar */
+        .checkout-bar { position: fixed; bottom: 0; width: 100%; background: #000; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); z-index: 500; border-top: 2px solid var(--primary); }
+        
+        /* Footer & Developer Section */
+        footer { background: #000; color: white; padding: 50px 20px; text-align: center; margin-top: 50px; }
+        .dev-info { margin-bottom: 20px; }
+        .dev-info p { font-size: 0.9rem; opacity: 0.7; }
+        .dev-name { font-size: 1.5rem; color: var(--accent); font-weight: bold; display: block; margin: 5px 0 15px; }
+        
+        .social-links { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .social-links a { color: white; text-decoration: none; background: #222; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #444; transition: 0.3s; }
+        .social-links a:hover { background: var(--primary); border-color: var(--accent); }
+        
+        .copyright { font-size: 0.8rem; opacity: 0.5; border-top: 1px solid #222; padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button onclick="toggleSidebar()" style="color:white; float:right; border:none; background:none; font-size: 25px; cursor: pointer;">✕</button>
+        <div style="text-align: center; margin-top: 60px;">
+            <img id="user-pico" src="https://via.placeholder.com/90" class="profile-pic">
+            <h3 id="side-name">Guest User</h3>
+            <p id="side-email" style="opacity: 0.7; font-size: 14px;">Log in to order food</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div style="font-size: 24px; font-weight: 800; color: #fff;">FOOD<span style="color:var(--accent)">IES</span></div>
+        <button class="btn" style="width:auto; margin:0; padding: 8px 20px;" onclick="openModal('loginModal')">Login</button>
+    </header>
+
+    <!-- Welcome Section -->
+    <section class="hero">
+        <h1 id="welcome-text"></h1>
+    </section>
+
+    <!-- Modals -->
+    <div class="modal" id="loginModal">
+        <div class="form-box">
+            <h2>Create Account</h2>
+            <input type="text" id="u-name" placeholder="Full Name">
+            <input type="email" id="u-email" placeholder="Gmail Address">
+            <input type="date" id="u-bday">
+            <p style="font-size: 12px; color: #666; margin-top: 5px;">Upload Profile Picture:</p>
+            <input type="file" id="u-pic" accept="image/*">
+            <button class="btn" onclick="makeAccount()">Successful</button>
+        </div>
+    </div>
+
+    <div class="modal" id="qtyModal">
+        <div class="form-box">
+            <h3 id="m-item-name">Item Name</h3>
+            <input type="number" id="o-qty" value="1" min="1" placeholder="Quantity">
+            <input type="text" id="o-loc" placeholder="Delivery Location (Full Address)">
+            <button class="btn" onclick="addToCart()">Confirm Order</button>
+            <button class="btn" style="background:#777" onclick="closeModal('qtyModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Menu Items -->
+    <div class="container">
+        <h2 style="margin-bottom: 30px; border-left: 5px solid var(--accent); padding-left: 15px;">Today's Menu</h2>
+        <div class="menu-grid" id="menu-display"></div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="checkout-bar">
+        <div><h3 id="c-total" style="color: #fff;">Total: $0</h3></div>
+        <button class="btn" style="width:auto; background:#2ed573; margin:0;" onclick="finalCheckout()">Download PDF</button>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="dev-info">
+            <p>This Website is Made By:</p>
+            <span class="dev-name">Md. Akash Mia</span>
+        </div>
+        
+        <div class="social-links">
+            <a href="https://www.facebook.com/share/18cbndifQM/" target="_blank">Facebook</a>
+            <a href="https://wa.me/8801322135538" target="_blank">WhatsApp</a>
+            <a href="https://github.com/mdakash38" target="_blank">GitHub</a>
+        </div>
+
+        <p class="copyright">
+            © 2026 Foodies | All Rights Reserved
+        </p>
+    </footer>
+
+    <script>
+        let user = { name: '', email: '', pic: '', loc: '' };
+        let cart = [];
+        let activeF = {};
+
+        const foods = [
+            { name: "Spicy Burger", price: 10, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" },
+            { name: "Cheese Pizza", price: 15, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400" },
+            { name: "Pasta", price: 12, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400" },
+            { name: "French Fries", price: 5, img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400" },
+            { name: "Sandwich", price: 8, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400" },
+            { name: "Coke Ice", price: 3, img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400" },
+            { name: "Fried Chicken", price: 14, img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=400" },
+            { name: "Noodles", price: 11, img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400" },
+            { name: "Ice Cream", price: 6, img: "https://images.unsplash.com/photo-1501443762994-82bd5dabb892?w=400" },
+            { name: "Hot Coffee", price: 4, img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400" }
+        ];
+
+        window.onload = () => {
+            const grid = document.getElementById('menu-display');
+            foods.forEach(f => {
+                grid.innerHTML += `
+                <div class="card">
+                    <img src="${f.img}">
+                    <h3>${f.name}</h3>
+                    <p>$${f.price}</p>
+                    <button class="btn" onclick="openQty('${f.name}', ${f.price})">Order Now</button>
+                </div>`;
+            });
+            typeWriter("Welcome to Foodies Official");
+        };
+
+        // টাইপরাইটার ইফেক্ট ফাংশন
+        function typeWriter(txt) {
+            let i = 0;
+            const el = document.getElementById('welcome-text');
+            el.innerHTML = "";
+            function type() {
+                if (i < txt.length) { 
+                    el.innerHTML += txt.charAt(i); 
+                    i++; 
+                    setTimeout(type, 150); 
+                }
+            }
+            type();
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function makeAccount() {
+            user.name = document.getElementById('u-name').value;
+            user.email = document.getElementById('u-email').value;
+            if(!user.name || !user.email) return alert("Please fill name and email!");
+
+            const file = document.getElementById('u-pic').files[0];
+            if(file) {
+                const r = new FileReader();
+                r.onload = (e) => { 
+                    document.getElementById('user-pico').src = e.target.result; 
+                    user.pic = e.target.result; 
+                };
+                r.readAsDataURL(file);
+            }
+            document.getElementById('side-name').innerText = user.name;
+            document.getElementById('side-email').innerText = user.email;
+            
+            closeModal('loginModal');
+            typeWriter("Hello, " + user.name + "! What's for lunch?");
+        }
+
+        function openQty(n, p) {
+            if(!user.name) { 
+                alert("Please log in first to order!");
+                openModal('loginModal'); 
+                return; 
+            }
+            activeF = { n, p };
+            document.getElementById('m-item-name').innerText = n;
+            openModal('qtyModal');
+        }
+
+        function addToCart() {
+            let q = parseInt(document.getElementById('o-qty').value);
+            let location = document.getElementById('o-loc').value;
+            if(!location) return alert("Please enter delivery location!");
+            
+            user.loc = location;
+            cart.push({ n: activeF.n, p: activeF.p, q: q, t: activeF.p * q });
+            document.getElementById('c-total').innerText = "Total: $" + cart.reduce((s, i) => s + i.t, 0);
+            closeModal('qtyModal');
+            alert(activeF.n + " added to your list!");
+        }
+
+        function finalCheckout() {
+            if(cart.length === 0) return alert("Your list is empty!");
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(20);
+            doc.text("Foodies Order Receipt", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Customer Name: ${user.name}`, 20, 35);
+            doc.text(`Email: ${user.email}`, 20, 42);
+            doc.text(`Delivery Location: ${user.loc}`, 20, 49);
+            doc.line(20, 55, 190, 55);
+            
+            let y = 65;
+            doc.text("Item", 20, y);
+            doc.text("Qty", 100, y);
+            doc.text("Price", 160, y);
+            
+            let grandTotal = 0;
+            cart.forEach(i => { 
+                y += 10;
+                doc.text(i.n, 20, y); 
+                doc.text(i.q.toString(), 100, y); 
+                doc.text("$" + i.t, 160, y); 
+                grandTotal += i.t;
+            });
+            
+            doc.line(20, y + 5, 190, y + 5);
+            doc.text(`Grand Total: $${grandTotal}`, 140, y + 15);
+            doc.text("Thank you for ordering with Foodies!", 20, y + 30);
+            
+            doc.save(`Foodies_Order_${user.name}.pdf`);
+        }
+    </script>
+</body>
+</html>
