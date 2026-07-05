@@ -16,7 +16,7 @@
 
     <style>
         :root { 
-            --primary: #800000; /* খয়েরি */
+            --primary: #800000; /* খয়েরি */
             --accent: #ff4757; 
             --dark-bg: #121212; 
             --card-bg: #1e1e1e;
@@ -115,8 +115,8 @@
     <div class="modal" id="qtyModal">
         <div class="form-box">
             <h3 id="m-item-name" style="color:var(--primary)">Item</h3>
-            <label>Quantity</label>
-            <input type="number" id="o-qty" value="1" min="1">
+            <label>Quantity (Max 100)</label>
+            <input type="number" id="o-qty" value="1" min="1" max="100">
             <label>Full Delivery Address</label>
             <input type="text" id="o-loc" placeholder="Street, City, Area">
             <button class="btn" onclick="addToCart()">Add to My List</button>
@@ -162,7 +162,7 @@
         window.onload = () => {
             const grid = document.getElementById('menu-display');
             foods.forEach(f => {
-                grid.innerHTML += `<div class="card"><img src="{f.img}"><h3>${f.name}</h3><p style="color:var(--accent); font-weight:bold; font-size:1.2rem; margin:10px 0;">$${f.price}</p><button class="btn" onclick="openQty('${f.name}', ${f.price})">Order Now</button></div>`;
+                grid.innerHTML += `<div class="card"><img src="${f.img}"><h3>${f.name}</h3><p style="color:var(--accent); font-weight:bold; font-size:1.2rem; margin:10px 0;">$${f.price}</p><button class="btn" onclick="openQty('${f.name}', ${f.price})">Order Now</button></div>`;
             });
             typeWriter("Explore Foodies Premium");
         };
@@ -199,11 +199,22 @@
             if(!user.name) { alert("Please login first!"); return openModal('loginModal'); }
             activeF = { n, p };
             document.getElementById('m-item-name').innerText = "Order " + n;
+            // Reset quantity to 1 when modal opens
+            document.getElementById('o-qty').value = 1;
             openModal('qtyModal');
         }
 
         function addToCart() {
             let q = parseInt(document.getElementById('o-qty').value);
+            
+            // Validation: চেক করা হচ্ছে অর্ডার ১০০ এর বেশি কিনা
+            if (q > 100) {
+                return alert("You cannot order more than 100 items at once!");
+            }
+            if (q < 1 || isNaN(q)) {
+                return alert("Please enter a valid quantity!");
+            }
+
             user.loc = document.getElementById('o-loc').value;
             if(!user.loc) return alert("Address is required!");
             cart.push({ n: activeF.n, p: activeF.p, q: q, t: activeF.p * q });
